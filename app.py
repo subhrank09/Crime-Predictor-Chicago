@@ -1,19 +1,41 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
+import gdown
 from pathlib import Path
 import datetime
 
 # --- CONFIGURATION ---
 st.set_page_config(page_title="Chicago Crime Predictor", page_icon="🕵️", layout="wide")
 
-# --- LOAD MODEL ---
+# --- MODEL DOWNLOAD & LOAD ---
+MODEL_DIR = Path("models")
+MODEL_PATH = MODEL_DIR / "crime_model_v1.pkl"
+# Your specific Google Drive File ID
+GOOGLE_DRIVE_ID = "12UiIKe90v5Le72hxhBN0DLKPoCN042No"
+
 @st.cache_resource
 def load_model():
-    model_path = Path("models/crime_model_v1.pkl")
-    return joblib.load(model_path)
+    # 1. Ensure the models directory exists
+    if not MODEL_DIR.exists():
+        MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # 2. Download from Google Drive if the file isn't there
+    if not MODEL_PATH.exists():
+        with st.spinner("Downloading trained model from Google Drive (approx. 190MB)... Please wait."):
+            url = f'https://drive.google.com/uc?id={GOOGLE_DRIVE_ID}'
+            gdown.download(url, str(MODEL_PATH), quiet=False)
+    
+    # 3. Load the model
+    return joblib.load(MODEL_PATH)
 
-model = load_model()
+# Initialize the model
+try:
+    model = load_model()
+except Exception as e:
+    st.error(f"Error loading model: {e}")
+    st.stop()
 
 # --- UI DESIGN ---
 st.title("🕵️ Chicago Crime Prediction Portal")
@@ -34,7 +56,6 @@ with st.sidebar:
     lon = st.number_input("Longitude", value=-87.6298, format="%.4f")
 
 # --- FEATURE PROCESSING ---
-# We need to transform user input into the same format used during training
 hour = input_time.hour
 day_of_week = input_date.weekday()
 month = input_date.month
