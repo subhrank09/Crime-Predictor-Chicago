@@ -1,0 +1,17 @@
+# Ignore the data folder
+data/
+
+# Ignore the trained models (too large for GitHub)
+models/
+*.pkl
+
+# Ignore virtual environments
+venv/
+.env
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore VS Code settings
+.vscode/
